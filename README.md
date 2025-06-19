@@ -2,7 +2,7 @@
 
 A personal side-project to build a lightweight system for personnel management and financial movements (absences, advances, transfers, etc.) in my family’s glass-workshop business.
 
-Why I am doing this?
+Why am I doing this?
 - This is a task that could be highly automatizable, and 
 - This repo is my attempt to automate the basics while practising Python, SQLite, creating a web interfase, etc.
 
