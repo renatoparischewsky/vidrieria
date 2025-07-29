@@ -15,6 +15,17 @@ CREATE TABLE IF NOT EXISTS Employee (
 )
 """)
 
-conn.commit()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS Movement (
+            identifier INTEGER PRIMARY KEY AUTOINCREMENT,   
+            employee_id INTEGER NOT NULL,   
+            movement_type TEXT NOT NULL,   
+            amount INT NOT NULL,
+            date TEXT NOT NULL,
+            description TEXT,
+            FOREIGN KEY (employee_id) REFERENCES Employee(identifier)
+)               
+""")
 
+conn.commit()
 conn.close()

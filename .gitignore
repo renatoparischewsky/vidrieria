@@ -7,7 +7,7 @@ __pycache__/
 
 # Archivos de bases de datos locales
 *.db
-
+*.sqbpro
 # Archivos temporales de VS Code / sistema
 .vscode/
 .DS_Store

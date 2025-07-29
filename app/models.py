@@ -11,7 +11,7 @@ class Employee:
 
     def load_employee(self, identifier):
         try:
-            conn = sqlite3.connect("db/vidreria.db")
+            conn = sqlite3.connect("db/vidrieria.db")
             cursor = conn.cursor()
             cursor.execute("""
             SELECT * FROM Employee                    
@@ -32,27 +32,121 @@ class Employee:
         except Exception as e:
             print("Error inesperado.")
         finally:
-            conn.close()
+            if 'conn' in locals() and conn:
+                conn.close()
 
     def insert_employee(self):
         if self.identifier is not None:
             print("Debes desasignar el id agregado del empleado, de lo contrario no se podrá subir a la base de datos")
             return False
-        conn = sqlite3.connect("db/vidreria.db")
-        cursor = conn.cursor()
-        cursor.execute("""
-        INSERT INTO Employee (tax_id, first_name, last_name, base_salary, is_active)
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        (
-            self.tax_id,
-            self.first_name,
-            self.last_name, 
-            self.base_salary,
-            self.is_active)
-        )
+        try:
+            conn = sqlite3.connect("db/vidrieria.db")
+            cursor = conn.cursor()
+            cursor.execute("""
+            INSERT INTO Employee (tax_id, first_name, last_name, base_salary, is_active)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                self.tax_id,
+                self.first_name,
+                self.last_name, 
+                self.base_salary,
+                self.is_active)
+            )
 
-        self.identifier = cursor.lastrowid
+            self.identifier = cursor.lastrowid
+            conn.commit()
+            return True
+        except Exception as e:
+            print("Error inesperado.")
+        finally:
+            if 'conn' in locals() and conn:
+                conn.close()
+    @staticmethod
+    def get_all_active():
+        try:
+            conn = sqlite3.connect("db/vidrieria.db")
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT identifier, tax_id, first_name, last_name, base_salary FROM Employee WHERE is_active = 1 ORDER BY first_name")
+            employees = cursor.fetchall()
+            return employees
+        except Exception as e:
+            print("Error al buscar empleados")
+            return []
+        finally:
+            if 'conn' in locals() and conn:
+                conn.close()
 
-        conn.commit()
-        conn.close()
+
+    @staticmethod
+    def get_all_inactive():
+        try:
+            conn = sqlite3.connect("db/vidrieria.db")
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT identifier, tax_id, first_name, last_name, base_salary FROM Employee WHERE is_active = 0 ORDER BY first_name")
+            employees = cursor.fetchall()
+            return employees
+        except Exception as e:
+            print("Error al buscar empleados")
+            return []
+        finally:
+            if 'conn' in locals() and conn:
+                conn.close()
+
+
+    def mark_as_inactive(self):
+        try:
+            conn = sqlite3.connect("db/vidrieria.db")
+            cursor = conn.cursor()
+            cursor.execute("""
+            UPDATE Employee SET is_active =  0 WHERE identifier = ?""",
+            (self.identifier,)
+            )
+            conn.commit()
+            self.is_active = 0
+            return True
+        except Exception as e:
+            print("Error inesperado.")
+        finally:
+            if 'conn' in locals() and conn:
+                conn.close()
+    def mark_as_active(self):
+        try:
+            conn = sqlite3.connect("db/vidrieria.db")
+            cursor = conn.cursor()
+            cursor.execute("""
+            UPDATE Employee SET is_active =  1 WHERE identifier = ?""",
+            (self.identifier,)
+            )
+            conn.commit()
+            self.is_active = 1
+            return True
+        except Exception as e:
+            print("Error inesperado.")
+        finally:
+            if 'conn' in locals() and conn:
+                conn.close()
+    def update_employee(self):
+        if self.identifier is None:
+            return False
+        try:
+            conn = sqlite3.connect("db/vidrieria.db")
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE Employee 
+                SET tax_id = ?, first_name = ?, last_name = ?, base_salary = ?, is_active = ?
+                WHERE identifier = ?
+            """, (
+                self.tax_id, self.first_name, self.last_name, 
+                self.base_salary, self.is_active, self.identifier
+            ))
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error al actualizar empleado: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
