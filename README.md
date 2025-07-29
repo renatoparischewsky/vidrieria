@@ -1,46 +1,87 @@
-# Vidrieria Personnel & Finance Manager
-
+Vidrieria - Personnel & Finance Manager
 A personal side-project to build a lightweight system for personnel management and financial movements (absences, advances, transfers, etc.) in my family’s glass-workshop business.
 
-Why am I doing this?
-- This is a task that could be highly automatizable, and 
-- This repo is my attempt to automate the basics while practising Python, SQLite, creating a web interfase, etc.
+This repo is my attempt to automate the basics while practicing Python, SQLite, creating a web interface with Streamlit, and more. The goal is to create a functional MVP that solves a real-world problem.
 
+🚀 Current Features
+The application is built with Streamlit and provides a multi-page dashboard to manage employees and their financial movements.
 
+Employee Dashboard:
 
-Current Status (Sprint 1)
+View a table of all active employees with their base salary.
 
-Virtual environment + `pip install pandas sqlite3` | ✅ | Project runs locally in its own venv. 
-Basic management of SQL databases and git.
- `Employee` class (Python) | ✅ | Encapsulates id, tax ID, names, salary, active flag. 
- SQLite table `Employee`   | ✅ | Created via `create_table.py` (auto‐generated ID, constraints). 
- Basic CRUD helpers        | ✅ | `insert_employee()` and `load_employee()` tested from a mini *TestModels* script. 
+Display a real-time calculation of the net salary to be paid for the current month for each employee.
 
- First commits pushed to GitHub | ✅ | `.db` file ignored, only schema & code tracked. 
+Calculate and display the total liquidity required for the month's payroll.
 
-So far the code lets me:
+Movement Management:
 
-1. Spin up `db/vidrieria.db` automatically.  
-2. Insert new employees safely (auto-increment id, UNIQUE tax ID).  
-3. Load an employee record by id and access its attributes in Python.
+Add new movements for any employee, including:
 
+Unjustified Absences (calculates the discount automatically).
 
+Cash Advances.
 
+Bank Transfers.
 
-```bash
-# clone the repo
-git clone https://github.com/<your-user>/vidrieria.git
+View a comprehensive list of all movements within a specific month and year.
+
+Delete movements by their unique ID.
+
+Employee Management:
+
+Add new employees to the database.
+
+Deactivate employees (for temporary leave or termination) without deleting their historical data.
+
+Reactivate previously inactive employees.
+
+Update and increase the base salary of any employee.
+
+🛠️ Tech Stack
+Backend & Logic: Python
+
+Database: SQLite
+
+Web Interface: Streamlit
+
+Data Manipulation: Pandas
+
+⚙️ Getting Started
+Prerequisites
+Python 3.x
+
+Git
+
+Installation & Setup
+Clone the repository:
+
+Bash
+
+git clone https://github.com/renatoparischewsky/vidrieria.git
 cd vidrieria
+Create and activate a virtual environment:
 
-# create & activate virtual environment (Windows cmd example)
+Bash
+
+# For Windows
 python -m venv .venv
 .\.venv\Scripts\activate
+Install the required dependencies:
 
-# install runtime deps
-pip install -r requirements.txt       # pandas, etc.
+Bash
 
-# build the local database
-python db/create_table.py             # (creates Employee table if missing)
+pip install -r requirements.txt
+Initialize the database:
+This script will create the vidrieria.db file and the necessary tables if they don't exist.
 
-# run quick test
-python tests/test_models.py           # inserts & fetches a sample employee
+Bash
+
+python scripts/create_table.py
+Running the Application
+Once the setup is complete, run the following command to launch the Streamlit application:
+
+Bash
+
+streamlit run app/main.py
+Your web browser will open with the application running locally.
