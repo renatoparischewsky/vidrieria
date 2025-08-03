@@ -11,19 +11,19 @@ project_1_page = st.Page(
 
 project_2_page = st.Page(
     page="pages/net_discounts.py",
-    title="Descuentos Totales",
+    title="Consultar Descuentos",
     icon=":material/account_circle:"
 )
 
 project_3_page = st.Page(
     page="pages/insert_movement.py",
-    title="Añadir, editar o eliminar movimiento",
+    title="Añadir o Eliminar Descuento",
     icon=":material/account_circle:"
 )
 
 project_4_page = st.Page(
     page="pages/add_or_delete_employee.py",
-    title="Añadir o inactivar trabajador",
+    title="Gestionar Trabajadores",
     icon=":material/account_circle:"
 )
 

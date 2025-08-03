@@ -1,30 +1,32 @@
 import streamlit as st
-import sys
-import os
-import pandas as pd
-import numpy as np
 from datetime import datetime
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-
-
 from models import Employee
-from calculations_movement import(
+from app.calculations_movement import(
     calculate_cash_advance,
     calculate_bank_transfer,
     calculate_absence_discount,
-    calculate_total_discount
+    calculate_total_discount,
+    get_formatted_movements_for_month_single_employee
 )
+
+
 
 st.write("Consulta de Descuentos por Empleado")
 
 st.sidebar.header("Filtros de Búsqueda")
 
-type_discount = st.sidebar.selectbox(
-    '¿Qué descuentos te gustaría ver?',
-    ('Adelantos en caja', 'Transferencias', 'Faltas Injustificadas', 'Todos'),
-    key='discounts'
+employees = Employee.get_all_active()
+
+if employees:
+    list_employees = [dict(row) for row in employees]
+
+selected_employee = st.sidebar.selectbox(
+    "Empleado:",
+    options=list_employees,
+    format_func=lambda employee: f"{employee['first_name']} {employee['last_name']}"
 )
+
+
 today = datetime.now()
 year_selected = st.sidebar.number_input(
     "Año:",
@@ -38,49 +40,41 @@ month_selected_word = st.sidebar.selectbox(
     index=today.month - 1
 )
 
-
-employee_table = Employee.get_all_active()
-if employee_table:
-    list_employees = [dict(row) for row in employee_table]
-
-selected_employee = st.sidebar.selectbox(
-    "Empleado:",
-    options=list_employees,
-    format_func=lambda employee: f"{employee['first_name']} {employee['last_name']}"
-)
+month_selected_number = months.index(month_selected_word) + 1
 
 
-if st.sidebar.button("Calcular"):
-    employee_id = selected_employee["identifier"]
-    month_selected_number = months.index(month_selected_word) + 1
+employee_id = selected_employee["identifier"]
 
-
-    st.subheader(f"Resultados para: {selected_employee['first_name']} {selected_employee['last_name']}")
-        
-    if type_discount == "Adelantos en caja":
-        st.divider()
-        discount = calculate_cash_advance(employee_id, year_selected, month_selected_number)
-        st.metric(label="Total Adelantos en Caja", value=f"${discount}")
-        
-
-    elif type_discount == "Transferencias":
-        st.divider()
-        discount = calculate_bank_transfer(employee_id, year_selected, month_selected_number)
-        st.metric(label="Total Transferencias", value=f"${discount}")
-        
-    
-    elif type_discount == "Faltas Injustificadas":
-        st.divider()
-        discount = calculate_absence_discount(employee_id, year_selected, month_selected_number)
-        st.metric(label="Total Faltas Injustificaas", value=f"${discount}")
-        
+st.subheader(f"Resultados para: {selected_employee['first_name']} {selected_employee['last_name']}")
+st.divider()
+discount = calculate_cash_advance(employee_id, year_selected, month_selected_number)
+st.metric(label="**Total Adelantos en Caja**", value=f"${discount:,d} CLP")
+st.divider()
+discount = calculate_bank_transfer(employee_id, year_selected, month_selected_number)
+st.metric(label="**Total Transferencias**", value=f"${discount:,d} CLP")
+st.divider()
+discount = calculate_absence_discount(employee_id, year_selected, month_selected_number)
+st.metric(label="**Total Faltas Injustificadas**", value=f"${discount:,d} CLP")
+st.divider()
+discount = calculate_total_discount(employee_id, year_selected, month_selected_number)
+st.metric(label="**Descuento Total del Mes**", value=f"${discount:,d} CLP")
     
     
-    elif type_discount == "Todos":
-        st.divider()
-        discount = calculate_total_discount(employee_id, year_selected, month_selected_number)
-        st.metric(label="**Descuento Total del Mes**", value=f"${discount}")
-    else:
-        st.warning("No hay empleados para mostrar o seleccionar.")
+df_movements = get_formatted_movements_for_month_single_employee(employee_id, year_selected, month_selected_number)
 
 
+columns_in_spanish = {
+"identifier": "ID",
+"employee_id": "Trabajador",
+"movement_type": "Tipo de Movimiento",
+"amount":  "Monto",
+"date": "Fecha",
+"description": "Descripción"
+}
+
+if df_movements.empty:
+    pass
+else:
+    df_movements = df_movements.rename(columns=columns_in_spanish)
+    df_movements = df_movements.set_index("ID")
+    st.dataframe(df_movements, use_container_width=True)

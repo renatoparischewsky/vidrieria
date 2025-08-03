@@ -4,7 +4,7 @@ from models import Employee
 
 
 add_or_delete = st.sidebar.selectbox(
-    'Seleccione si quiere añadir o inactivar a un trabaajador',
+    'Seleccione si quiere añadir o inactivar a un trabajador',
     ('Añadir', 'Inactivar', 'Activar')
 )
 

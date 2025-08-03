@@ -3,10 +3,13 @@ import pandas as pd
 from datetime import datetime
 from app.models_movements import Movement
 from app.models import Employee
+from app.calculations_movement import(
+register_cash_advance,
+register_bank_transfer,
+register_abscence,
+get_formatted_movements_for_month
+)
 
-
-if 'current_movements' not in st.session_state:
-    st.session_state.current_movements = None
 
 type_movement = st.sidebar.selectbox(
     'Seleccione si quiere añadir o eliminar un moviemiento',
@@ -36,26 +39,20 @@ if type_movement == 'Añadir':
     )
     st.write("Fecha seleccionada:", date_selected)
 
-    employee_table = Employee.get_all_active()
-    list_employees = [dict(row) for row in employee_table]
+    employees = Employee.get_all_employees()
+    list_employees = [dict(row) for row in employees]
     selected_employee = st.sidebar.selectbox(
         "Empleado:",
         options=list_employees,
         format_func=lambda employee: f"{employee['first_name']} {employee['last_name']}"
     )
+
     if type_discount == "Adelantos en Caja" or type_discount == "Transferencia":
         amount = st.sidebar.number_input(
             "Monto",
             step=25000,
             min_value=0
         )
-    else:
-        employee = Employee()
-        employee_id = selected_employee['identifier']
-        employee.load_employee(employee_id)
-        amount = round(employee.base_salary / 30)
-
-
 
     description = st.text_input("Añada una descripción (opcional)")
 
@@ -63,11 +60,13 @@ if type_movement == 'Añadir':
         employee_id = selected_employee["identifier"]
         movement_type = type_discount_map[type_discount]
         date = date_selected.isoformat()
-        added_movement = Movement(employee_id, movement_type, amount, date, description)
-        if added_movement.insert_movement():
-            st.info("Movimiento añadido exitosamente")
         
-
+        if type_discount == "Adelantos en Caja":
+            adding_movement = register_cash_advance(employee_id=employee_id, amount=amount, movement_date=date, description=description)    
+        if type_discount == "Transferencia":
+            adding_movement = register_bank_transfer(employee_id=employee_id,amount=amount, movement_date=date, description=description)   
+        if type_discount == "Falta Injustificada":
+            adding_movement = register_abscence(employee_id=employee_id, movement_date=date, description=description)   
 if type_movement == 'Eliminar':
     st.sidebar.write("Selecciona el período a consultar:")
     st.write("""
@@ -90,39 +89,35 @@ if type_movement == 'Eliminar':
     )
     
     st.subheader("Movimientos del Período")
-    movements = Movement.find_by_month(year_selected, month_selected_number)
-    if not movements:
-        st.info("No se encontraron movimientos para el período seleccionado.")
+    mov_to_delete = st.number_input(
+    "Selecciona el ID del movimiento que quieres eliminar:",
+    min_value=1,
+    step=None,
+    key="id_to_delete"
+    )
+
+    df_movements = get_formatted_movements_for_month(year_selected, month_selected_number)
+    
+
+    
+    columns_in_spanish = {
+    "identifier": "ID",
+    "employee_id": "Trabajador",
+    "movement_type": "Tipo de Movimiento",
+    "amount":  "Monto",
+    "date": "Fecha",
+    "description": "Descripción"
+    }
+
+    if df_movements.empty:
+        pass
     else:
-        df_movements = pd.DataFrame([dict(row) for row in movements])
-        employees_list = Employee.get_all_active()
-        employee_mapping = {emp['identifier']: f"{emp['first_name']} {emp['last_name']}" for emp in employees_list}
-        df_movements['employee_id'] = df_movements['employee_id'].map(employee_mapping)
-        movement_type_map = {
-            "CASH_ADVANCE": "Adelanto en Caja",
-            "BANK_TRANSFER": "Transferencia",
-            "UNJUSTIFIED_ABSENCE": "Falta Injustificada"
-        }
-        df_movements['movement_type'] = df_movements['movement_type'].map(movement_type_map)
-        columns_in_spanish = {
-            "identifier": "ID",
-            "employee_id": "Trabajador",
-            "movement_type": "Tipo de Movimiento",
-            "amount":  "Monto",
-            "date": "Fecha",
-            "description": "Descripción"
-        }
         df_movements = df_movements.rename(columns=columns_in_spanish)
-        mov_to_delete = st.number_input(
-            "Selecciona el ID del movimiento que quieres eliminar:",
-            min_value=1,
-            step=None,
-            key="id_to_delete"
-        )
         df_movements = df_movements.set_index("ID")
         st.dataframe(df_movements, use_container_width=True)
-        st.session_state['movements_data'] = df_movements
-        st.subheader("Eliminar un Movimiento")
-        if st.button("Eliminar Movimiento Seleccionado", type="primary"):
-            if Movement.delete_by_id(mov_to_delete):
-                st.rerun()
+
+    st.session_state['movements_data'] = df_movements
+    st.subheader("Eliminar un Movimiento")
+    if st.button("Eliminar Movimiento Seleccionado", type="primary"):
+        if Movement.delete_by_id(mov_to_delete):
+            st.rerun()
