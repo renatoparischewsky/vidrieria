@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from app.models_movements import Movement
-from app.models import Employee
+from app.movements import Movement
+from app.employees import Employee
 from app.calculations_movement import(
 register_cash_advance,
 register_bank_transfer,
@@ -10,6 +10,9 @@ register_abscence,
 get_formatted_movements_for_month
 )
 
+if 'new_movement' in st.session_state and st.session_state.new_movement:
+    st.success(f"Movimiento añadido exitosamente")
+    st.session_state.new_movement = False
 
 type_movement = st.sidebar.selectbox(
     'Seleccione si quiere añadir o eliminar un moviemiento',
@@ -39,7 +42,7 @@ if type_movement == 'Añadir':
     )
     st.write("Fecha seleccionada:", date_selected)
 
-    employees = Employee.get_all_employees()
+    employees = Employee.get_all_active()
     list_employees = [dict(row) for row in employees]
     selected_employee = st.sidebar.selectbox(
         "Empleado:",
@@ -57,16 +60,24 @@ if type_movement == 'Añadir':
     description = st.text_input("Añada una descripción (opcional)")
 
     if st.sidebar.button("Añadir movimiento"):
-        employee_id = selected_employee["identifier"]
+        employee_id = selected_employee["employee_id"]
         movement_type = type_discount_map[type_discount]
         date = date_selected.isoformat()
         
         if type_discount == "Adelantos en Caja":
-            adding_movement = register_cash_advance(employee_id=employee_id, amount=amount, movement_date=date, description=description)    
+            adding_movement = register_cash_advance(employee_id=employee_id, amount=amount, movement_date=date, description=description)
+            st.session_state.new_movement = True
+            st.rerun()
         if type_discount == "Transferencia":
-            adding_movement = register_bank_transfer(employee_id=employee_id,amount=amount, movement_date=date, description=description)   
+            adding_movement = register_bank_transfer(employee_id=employee_id,amount=amount, movement_date=date, description=description)
+            st.session_state.new_movement = True
+            st.rerun()
         if type_discount == "Falta Injustificada":
-            adding_movement = register_abscence(employee_id=employee_id, movement_date=date, description=description)   
+            adding_movement = register_abscence(employee_id=employee_id, movement_date=date, description=description)
+            st.session_state.new_movement = True
+            st.rerun()
+
+        
 if type_movement == 'Eliminar':
     st.sidebar.write("Selecciona el período a consultar:")
     st.write("""

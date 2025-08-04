@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime
-from models import Employee
+from app.employees import Employee
 from app.calculations_movement import(
     calculate_cash_advance,
     calculate_bank_transfer,
@@ -43,7 +43,7 @@ month_selected_word = st.sidebar.selectbox(
 month_selected_number = months.index(month_selected_word) + 1
 
 
-employee_id = selected_employee["identifier"]
+employee_id = selected_employee["employee_id"]
 
 st.subheader(f"Resultados para: {selected_employee['first_name']} {selected_employee['last_name']}")
 st.divider()

@@ -1,5 +1,5 @@
-from app.models_movements import Movement
-from models import Employee
+from app.movements import Movement
+from app.employees import Employee
 from datetime import date, timedelta
 import holidays
 import calendar
@@ -80,7 +80,7 @@ def calculate_cash_advance(employee_id: int, year: int, month: int):
         if movement["movement_type"] == "CASH_ADVANCE":
             total_discount += movement["amount"]
 
-    return total_discount
+    return round(total_discount)
 
 def calculate_bank_transfer(employee_id: int, year: int, month: int):
     movements = Movement.find_by_employee_and_month(employee_id, year, month)
@@ -90,7 +90,7 @@ def calculate_bank_transfer(employee_id: int, year: int, month: int):
         if movement["movement_type"] == "BANK_TRANSFER":
             total_discount += movement["amount"]
 
-    return total_discount
+    return round(total_discount)
 
 def calculate_absence_discount(employee_id: int, year: int, month: int):
     employee = Employee()
@@ -131,7 +131,7 @@ def get_active_employees_total_salary_this_payroll(start_date, end_date):
     total_to_pay = 0
     for emp_row in employees:
         employee_data = dict(emp_row)
-        employee_id = employee_data['identifier']
+        employee_id = employee_data['employee_id']
         movements = Movement.find_by_employee_and_date_range(employee_id, start_date, end_date)
         total_discount = sum(mov['amount'] for mov in movements)
         base_salary = employee_data['base_salary'] 
@@ -150,7 +150,7 @@ def get_formatted_movements_for_month(year: int, month: int):
         return pd.DataFrame()
     
     employees = Employee.get_all_employees() #1
-    employee_map = {emp['identifier']: f"{emp['first_name']} {emp['last_name']}" for emp in employees}
+    employee_map = {emp['employee_id']: f"{emp['first_name']} {emp['last_name']}" for emp in employees}
     movement_type_map = {
         "CASH_ADVANCE": "Adelanto en Caja",
         "BANK_TRANSFER": "Transferencia",
@@ -174,7 +174,7 @@ def get_formatted_movements_for_month_single_employee(employee_id: int,year: int
         return pd.DataFrame()
     
     employees = Employee.get_all_active()
-    employee_map = {emp['identifier']: f"{emp['first_name']} {emp['last_name']}" for emp in employees}
+    employee_map = {emp['employee_id']: f"{emp['first_name']} {emp['last_name']}" for emp in employees}
     movement_type_map = {
         "CASH_ADVANCE": "Adelanto en Caja",
         "BANK_TRANSFER": "Transferencia",

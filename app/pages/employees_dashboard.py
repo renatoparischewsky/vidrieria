@@ -14,9 +14,8 @@ employee_net_salaries_and_total_to_pay = get_active_employees_total_salary_this_
 list_net_salaries = employee_net_salaries_and_total_to_pay["list_net_salaries"]
 df_employees = pd.DataFrame(list_net_salaries)
 
-
 columns_in_spanish = {
-    "identifier": "Identificador",
+    "employee_id": "ID",
     "tax_id": "RUT",
     "first_name": "Nombre",
     "last_name":  "Apellido",
@@ -25,7 +24,7 @@ columns_in_spanish = {
     }
 
 df_employees = df_employees.rename(columns=columns_in_spanish)
-df_employees = df_employees.set_index("Identificador")
+df_employees = df_employees.set_index("ID")
 st.dataframe(df_employees, use_container_width=True)
 
 total_to_pay = employee_net_salaries_and_total_to_pay["total_to_pay"]

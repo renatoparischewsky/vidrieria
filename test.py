@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 from db.init_db import engine, init_db
-from app.models import Employee
+from app.employees import Employee
 
 # Inicializar la base de datos
 init_db()

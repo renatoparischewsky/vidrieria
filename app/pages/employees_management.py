@@ -1,6 +1,18 @@
 import streamlit as st
 import pandas as pd
-from models import Employee
+from app.employees import Employee
+
+if 'new_employee' in st.session_state and st.session_state.new_employee:
+    st.success(f"Empleado añadido exitosamente")
+    st.session_state.new_employee = False
+
+if 'inactivate' in st.session_state and st.session_state.inactivate:
+    st.success("Empleado marcado como inactivo con éxito.")
+    st.session_state.inactivate = False
+
+if 'activate' in st.session_state and st.session_state.activate:
+    st.success("Empleado marcado como activo con éxito.")
+    st.session_state.activate = False
 
 
 add_or_delete = st.sidebar.selectbox(
@@ -16,7 +28,11 @@ if add_or_delete == "Añadir":
     add_employee = st.button("Añadir")
     if add_employee:
         new_employee = Employee(tax_id, first_name, last_name, base_salary)
-        new_employee.insert_employee()
+        if new_employee.insert_employee():
+            st.session_state.new_employee = True
+            st.rerun()
+        else:
+            st.error("No se pudo ingresar al nuevo empleado. Asegurese de añadir un RUT único.")
 
 elif add_or_delete == "Inactivar":
     employee_table = Employee.get_all_active()
@@ -29,13 +45,12 @@ elif add_or_delete == "Inactivar":
     inactivate = st.button("Eliminar (marcar como inactivo debido a despido o por una baja laboral)")
 
     if inactivate:
-        employee_id = selected_employee['identifier']
+        employee_id = selected_employee['employee_id']
         employee_to_inactivate = Employee()
         employee_to_inactivate.load_employee(employee_id)
-        employee_to_inactivate.mark_as_inactive()
         if employee_to_inactivate.mark_as_inactive():
-            st.success("Empleado marcado como inactivo con éxito.")
-            st.rerun() # Recarga la página para refrescar la lista
+            st.session_state.inactivate = True
+            st.rerun()
         else:
             st.error("No se pudo actualizar el estado del empleado.")
         
@@ -51,13 +66,12 @@ elif add_or_delete == "Activar":
     activate = st.button("Activar empleado (puede que se haya recontratado o vuelto de una baja)")
 
     if activate:
-        employee_id = selected_employee['identifier']
+        employee_id = selected_employee['employee_id']
         employee_to_activate = Employee()
         employee_to_activate.load_employee(employee_id)
-        employee_to_activate.mark_as_active()
         if employee_to_activate.mark_as_active():
-            st.success("Empleado marcado como activo con éxito.")
-            st.rerun() # Recarga la página para refrescar la lista
+            st.session_state.activate = True
+            st.rerun()
         else:
             st.error("No se pudo actualizar el estado del empleado.")
         

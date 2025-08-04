@@ -1,5 +1,9 @@
 import streamlit as st
-from models import Employee
+from app.employees import Employee
+
+if 'salary_updated' in st.session_state and st.session_state.salary_updated:
+    st.success(f"Sueldo actualizado exitosamente")
+    st.session_state.salary_updated = False
 
 employee_table = Employee.get_all_active()
 if employee_table:
@@ -11,8 +15,8 @@ selected_employee = st.selectbox(
     format_func=lambda employee: f"{employee['first_name']} {employee['last_name']}"
 )
 
-actual_base_salary = selected_employee['base_salary']
-st.write(f"## Sueldo actual de {selected_employee['first_name']} {selected_employee['last_name']}: {actual_base_salary:,} CLP")
+actual_base_salary = round(selected_employee['base_salary'])
+st.write(f"## Sueldo actual de {selected_employee['first_name']} {selected_employee['last_name']}: {actual_base_salary:,d} CLP")
 amount = st.number_input(
     "**SUELDO NUEVO**",
     step=50000,
@@ -21,12 +25,12 @@ amount = st.number_input(
 confirm = st.button("CONFIRMAR")
 if confirm:
     if selected_employee and amount > 0:
-        employee_id = selected_employee['identifier']
+        employee_id = selected_employee['employee_id']
         employee_to_update = Employee()
         employee_to_update.load_employee(employee_id)
-        employee_to_update.base_salary = amount
+        employee_to_update.base_salary = round(amount)
         if employee_to_update.update_employee():
-            st.success(f"Sueldo de {employee_to_update.first_name} actualizado a ${amount:,} CLP")
+            st.session_state.salary_updated = True
             st.rerun() 
         else:
             st.error("No se pudo actualizar el sueldo en la base de datos.")
