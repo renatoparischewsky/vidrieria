@@ -97,19 +97,17 @@ def calculate_absence_discount(employee_id: int, year: int, month: int):
     if not employee.load_employee(employee_id):
         print(f"Error: no se pudo cargar o no existe el empleado con ID {employee_id}")
         return 0
-    if not employee.base_salary or employee.base_salary <= 0:
-        print("No hay sueldo para descontar")
-        return 0
+    # if not employee.base_salary or employee.base_salary <= 0:
+    #     print("No hay sueldo para descontar")
+    #     return 0
     
     movements = Movement.find_by_employee_and_month(employee_id, year, month)
 
-    absence_count = 0
+    total_discount = 0
     for movement in movements:
         if movement["movement_type"] == "UNJUSTIFIED_ABSENCE":
-            absence_count += 1
+            total_discount += movement["amount"]
 
-    daily_value = employee.base_salary/30
-    total_discount = daily_value * absence_count
     return round(total_discount)
 
 def calculate_total_discount(employee_id: int, year: int, month: int):

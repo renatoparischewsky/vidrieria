@@ -1,6 +1,6 @@
 # Entorno virtual (no debe subirse)
 .venv/
-
+.env
 # Cachés de Python
 __pycache__/
 *.py[cod]

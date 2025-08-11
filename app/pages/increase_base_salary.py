@@ -23,11 +23,13 @@ amount = st.number_input(
     min_value=0
 )
 confirm = st.button("CONFIRMAR")
+
+st.info("Es recomendado que aumente el sueldo el día después del día de la paga de sueldos.")
+
 if confirm:
     if selected_employee and amount > 0:
         employee_id = selected_employee['employee_id']
-        employee_to_update = Employee()
-        employee_to_update.load_employee(employee_id)
+        employee_to_update = Employee.load_employee(employee_id)
         employee_to_update.base_salary = round(amount)
         if employee_to_update.update_employee():
             st.session_state.salary_updated = True

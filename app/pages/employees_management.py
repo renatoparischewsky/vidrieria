@@ -46,8 +46,7 @@ elif add_or_delete == "Inactivar":
 
     if inactivate:
         employee_id = selected_employee['employee_id']
-        employee_to_inactivate = Employee()
-        employee_to_inactivate.load_employee(employee_id)
+        employee_to_inactivate = Employee.load_employee(employee_id)
         if employee_to_inactivate.mark_as_inactive():
             st.session_state.inactivate = True
             st.rerun()
@@ -67,8 +66,7 @@ elif add_or_delete == "Activar":
 
     if activate:
         employee_id = selected_employee['employee_id']
-        employee_to_activate = Employee()
-        employee_to_activate.load_employee(employee_id)
+        employee_to_activate = Employee.load_employee(employee_id)
         if employee_to_activate.mark_as_active():
             st.session_state.activate = True
             st.rerun()
