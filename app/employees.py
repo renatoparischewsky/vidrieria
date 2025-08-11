@@ -73,7 +73,9 @@ class Employee:
                         self.is_active
                         )
                     )
-                    self.employee_id = cursor.fetchone()
+                    new_id = cursor.fetchone()
+                    if new_id:
+                        self.employee_id = new_id[0]
                     return True
         except Exception as e:
             print(f"Error de base de datos: {e}")
@@ -152,7 +154,9 @@ class Employee:
                     """,
                     (self.employee_id,)
                     )
-                    self.employee_id = cursor.fetchone()
+                    new_id = cursor.fetchone()
+                    if new_id:
+                        self.employee_id = new_id[0]
                     return True
         except Exception as e:
             print(f"Error de base de datos: {e}")
@@ -175,7 +179,9 @@ class Employee:
                     """,
                     (self.employee_id,)
                     )
-                    self.employee_id = cursor.fetchone()
+                    new_id = cursor.fetchone()
+                    if new_id:
+                        self.employee_id = new_id[0]
                     return True
         except Exception as e:
             print(f"Error de base de datos: {e}")

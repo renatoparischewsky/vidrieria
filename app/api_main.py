@@ -83,13 +83,17 @@ def mark_as_inactive_api(employee_id: int):
     employee.mark_as_inactive()
 
 @app.put("/employees/{employee_id}/update", status_code=204)
-def update_employee_api(employee_id: int, employee_object: EmployeeUpdate):
+def update_employee_api(employee_id: int, employee_data: EmployeeUpdate):
+    employee_to_update = Employee.load_employee(employee_id)
+    if not employee_to_update:
+        raise HTTPException(status_code=404, detail="Empleado no encontrado")
 
-    employee = Employee(**employee_object.model_dump())
-    success = employee.update_employee()
-    
-    if not success:
-        raise HTTPException(status_code=404, detail="Empleado no encontrado o no se pudo actualizar")
+    update_data = employee_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(employee_to_update, key, value)
+
+    if not employee_to_update.update_employee():
+        raise HTTPException(status_code=500, detail="No se pudo actualizar el empleado")
 
 
 # Movement functions
