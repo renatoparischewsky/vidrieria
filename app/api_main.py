@@ -4,10 +4,10 @@ from psycopg2.extras import DictCursor
 import os
 from typing import List
 from dotenv import load_dotenv
-from employees import Employee
-from movements import Movement
-from calculations_movement import *
-from schemas import *
+from app.employees import Employee
+from app.movements import Movement
+from app.calculations_movement import *
+from app.schemas import *
 
 
 load_dotenv()
@@ -26,21 +26,7 @@ def get_db_conn():
         port=os.getenv("DB_PORT")
     )
 
-@app.get("/employees/load", response_model=EmployeeGet)
-def load_employee_api(employee_id):
-    
-    loaded = Employee.load_employee(employee_id)
-    if not loaded:
-        raise HTTPException(status_code=404, detail="Empleado no encontrado")
-    return loaded
-
-
-@app.post("/employees/insert", status_code=200)
-def insert_employee_api(employee_data: EmployeeCreate):
-    employee = Employee(**employee_data.model_dump())
-    success = employee.insert_employee()
-    if not success:
-        raise HTTPException(status_code=400, detail="No se pudo insertar empleado")
+# GET
 
 @app.get("/employees/active", response_model=List[EmployeeGet])
 def get_all_active_api():
@@ -56,13 +42,31 @@ def get_all_inactive_api():
         raise HTTPException(status_code=404, detail="No hay empleados inactivos")
     return employees
 
-    
 @app.get("/employees/all", response_model=List[EmployeeGet])
 def get_all_api():
     employees = Employee.get_all_employees()
     if not employees:
         raise HTTPException(status_code=404, detail="No hay empleados")
     return employees
+
+@app.get("/employees/{employee_id}", response_model=EmployeeGet)
+def load_employee_api(employee_id):
+    
+    loaded = Employee.load_employee(employee_id)
+    if not loaded:
+        raise HTTPException(status_code=404, detail="Empleado no encontrado")
+    return loaded
+
+# POST
+
+@app.post("/employees/insert", status_code=200)
+def insert_employee_api(employee_data: EmployeeCreate):
+    employee = Employee(**employee_data.model_dump())
+    success = employee.insert_employee()
+    if not success:
+        raise HTTPException(status_code=400, detail="No se pudo insertar empleado")
+
+#PUT
 
 @app.put("/employees/{employee_id}/activate", status_code=204)
 def mark_as_active_api(employee_id: int):
@@ -72,8 +76,6 @@ def mark_as_active_api(employee_id: int):
     
     employee.mark_as_active()
 
-
-
 @app.put("/employees/{employee_id}/inactivate")
 def mark_as_inactive_api(employee_id: int):
     employee = Employee.load_employee(employee_id)
@@ -82,7 +84,7 @@ def mark_as_inactive_api(employee_id: int):
     
     employee.mark_as_inactive()
 
-@app.put("/employees/{employee_id}/update", status_code=204)
+@app.put("/employees/{employee_id}/update", status_code=200)
 def update_employee_api(employee_id: int, employee_data: EmployeeUpdate):
     employee_to_update = Employee.load_employee(employee_id)
     if not employee_to_update:
@@ -99,12 +101,7 @@ def update_employee_api(employee_id: int, employee_data: EmployeeUpdate):
 # Movement functions
 #---------------------
 
-@app.post("/movements/insert", status_code=200)
-def insert_movement_api(movement_data: MovementCreate):
-    movement = Movement(**movement_data.model_dump())
-    success = movement.insert_movement()
-    if not success:
-        raise HTTPException(status_code=400, detail="No se pudo insertar movimiento")
+# GET
 
 @app.get("/movements/monthly/{year}/{month}/", response_model=List[MovementGet])
 def find_by_month_api(year: int, month: int):
@@ -141,6 +138,17 @@ def find_by_employee_and_date_range_api(
         raise HTTPException(status_code=404, detail="Movimientos no encontrados")
     return movements
 
+# POST
+
+@app.post("/movements/insert", status_code=200)
+def insert_movement_api(movement_data: MovementCreate):
+    movement = Movement(**movement_data.model_dump())
+    success = movement.insert_movement()
+    if not success:
+        raise HTTPException(status_code=400, detail="No se pudo insertar movimiento")
+
+# DELETE
+
 @app.delete("/movements/{movement_id}", status_code=200)
 def delete_by_id_api(movement_id: int):
     success =Movement.delete_by_id(movement_id)
@@ -150,40 +158,7 @@ def delete_by_id_api(movement_id: int):
 # calculations_movement functions
 #---------------------
 
-@app.post("/movements/cash-advance", status_code=200)
-def register_cash_advance_api(movement_data: MovementWithAmountRequest):
-    result = register_cash_advance(
-        employee_id=movement_data.employee_id,
-        amount=movement_data.amount, 
-        description=movement_data.description,
-        movement_date=movement_data.movement_date.isoformat() if movement_data.movement_date else None
-    )
-    
-    if not result:
-        raise HTTPException(status_code=400, detail="No se pudo registrar adelanto")
-
-@app.post("/movements/bank-transfer", status_code=200)
-def register_bank_transfer_api(movement_data: MovementWithAmountRequest):
-    result = register_bank_transfer(
-        employee_id=movement_data.employee_id,
-        amount=movement_data.amount, 
-        description=movement_data.description,
-        movement_date=movement_data.movement_date.isoformat() if movement_data.movement_date else None
-    )
-    
-    if not result:
-        raise HTTPException(status_code=400, detail="No se pudo registrar adelanto")
-
-@app.post("/movements/absence", status_code=200)
-def register_abscence_api(movement_data: BaseMovementRequest):
-    result = register_abscence(
-        employee_id=movement_data.employee_id,
-        description=movement_data.description,
-        movement_date=movement_data.movement_date.isoformat() if movement_data.movement_date else None
-    )
-    
-    if not result:
-        raise HTTPException(status_code=400, detail="No se pudo registrar adelanto")
+# GET
 
 @app.get("/payment-date/{year}/{month}")
 def get_payment_date_api(year: int, month: int):
@@ -214,25 +189,29 @@ def calculate_cash_advance_api(employee_id: int, year: int, month: int):
     calculation = calculate_cash_advance(employee_id, year, month)
     if not calculation:
         raise HTTPException(status_code=500, detail="Error calculando adelantos en caja")
+    return calculation
 
 @app.get("/movements/bank-transfer/{employee_id}/monthly/{year}/{month}")
 def calculate_bank_transfer_id(employee_id: int, year: int, month: int):
     calculation = calculate_bank_transfer(employee_id, year, month)
     if not calculation:
         raise HTTPException(status_code=500, detail="Error calculando transferencias bancarias")
+    return calculation
 
 @app.get("/movements/absence/{employee_id}/monthly/{year}/{month}")
 def calculate_absence_discount_api(employee_id: int, year: int, month: int):
     calculation = calculate_absence_discount(employee_id, year, month)
     if not calculation:
         raise HTTPException(status_code=500, detail="Error calculando descuento por faltas injustificadas")
+    return calculation
 
 @app.get("/movements/total/{employee_id}/monthly/{year}/{month}")
 def calculate_total_discount_api(employee_id: int, year: int, month: int):
     calculation = calculate_total_discount(employee_id, year, month)
     if not calculation:
         raise HTTPException(status_code=500, detail="Error calculando descuento total")
-    
+    return calculation
+
 @app.get("/payroll-calculation/{year}/{month}", response_model=PayrollCalculationResponse)
 def get_payroll_calculation_by_period_api(year: int, month: int):
     start_date, end_date = get_payroll_period(year, month)
@@ -249,18 +228,39 @@ def get_payroll_calculation_by_period_api(year: int, month: int):
         total_to_pay=result["total_to_pay"]
     )
 
-@app.get("/movements/formatted/monthly/{year}/{month}", response_model=List[MovementFormatted])
-def get_formatted_movements_api(year: int, month: int):
-    df_movements = get_formatted_movements_for_month(year, month)
-    if df_movements.empty:
-        raise HTTPException(status_code=404, detail="Movimientos no encontrados")
-    movements_list = df_movements.to_dict(orient="records")
-    return movements_list
+# POST
 
-@app.get("/movements/formatted/employee/{employee_id}/monthly/{year}/{month}", response_model=List[MovementFormatted])
-def get_formatted_movements_for_month_single_employee_api(employee_id: int, year: int, month: int):
-    df_movements = get_formatted_movements_for_month_single_employee(employee_id, year, month)
-    if df_movements.empty:
-        raise HTTPException(status_code=404, detail="Movimientos no encontrados")
-    movements_list = df_movements.to_dict(orient="records")
-    return movements_list
+@app.post("/movements/cash-advance", status_code=200)
+def register_cash_advance_api(movement_data: MovementWithAmountRequest):
+    result = register_cash_advance(
+        employee_id=movement_data.employee_id,
+        amount=movement_data.amount, 
+        description=movement_data.description,
+        movement_date=movement_data.movement_date.isoformat() if movement_data.movement_date else None
+    )
+    if not result:
+        raise HTTPException(status_code=400, detail="No se pudo registrar adelanto")
+
+@app.post("/movements/bank-transfer", status_code=200)
+def register_bank_transfer_api(movement_data: MovementWithAmountRequest):
+    result = register_bank_transfer(
+        employee_id=movement_data.employee_id,
+        amount=movement_data.amount, 
+        description=movement_data.description,
+        movement_date=movement_data.movement_date.isoformat() if movement_data.movement_date else None
+    )
+    
+    if not result:
+        raise HTTPException(status_code=400, detail="No se pudo registrar adelanto")
+
+@app.post("/movements/absence", status_code=200)
+def register_abscence_api(movement_data: BaseMovementRequest):
+    result = register_abscence(
+        employee_id=movement_data.employee_id,
+        description=movement_data.description,
+        movement_date=movement_data.movement_date.isoformat() if movement_data.movement_date else None
+    )
+    
+    if not result:
+        raise HTTPException(status_code=400, detail="No se pudo registrar adelanto")
+

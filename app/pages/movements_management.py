@@ -6,8 +6,7 @@ from app.employees import Employee
 from app.calculations_movement import(
 register_cash_advance,
 register_bank_transfer,
-register_abscence,
-get_formatted_movements_for_month
+register_abscence
 )
 
 if 'new_movement' in st.session_state and st.session_state.new_movement:
@@ -107,28 +106,38 @@ if type_movement == 'Eliminar':
     key="id_to_delete"
     )
 
-    df_movements = get_formatted_movements_for_month(year_selected, month_selected_number)
+    movements = Movement.find_by_month(year_selected, month_selected_number)
     
-
-    
-    columns_in_spanish = {
-    "identifier": "ID",
-    "employee_id": "Trabajador",
-    "movement_type": "Tipo de Movimiento",
-    "amount":  "Monto",
-    "date": "Fecha",
-    "description": "Descripción"
-    }
-
-    if df_movements.empty:
-        pass
+    if not movements:
+        st.info("No se encontraron movimientos para el período seleccionado.")
     else:
+        df_movements = pd.DataFrame([dict(row) for row in movements])
+        employees = Employee.get_all_active()
+        employee_map = {emp['employee_id']: f"{emp['first_name']} {emp['last_name']}" for emp in employees}
+        df_movements['employee_id'] = df_movements['employee_id'].map(employee_map)
+        
+        movement_type_map = {
+            "CASH_ADVANCE": "Adelanto en Caja",
+            "BANK_TRANSFER": "Transferencia",
+            "UNJUSTIFIED_ABSENCE": "Falta Injustificada"
+        }
+        df_movements['movement_type'] = df_movements['movement_type'].map(movement_type_map)
+
+        columns_in_spanish = {
+            "identifier": "ID",
+            "employee_id": "Trabajador",
+            "movement_type": "Tipo de Movimiento",
+            "amount":  "Monto",
+            "date": "Fecha",
+            "description": "Descripción"
+        }
         df_movements = df_movements.rename(columns=columns_in_spanish)
+        
         df_movements = df_movements.set_index("ID")
+        
         st.dataframe(df_movements, use_container_width=True)
 
-    st.session_state['movements_data'] = df_movements
-    st.subheader("Eliminar un Movimiento")
-    if st.button("Eliminar Movimiento Seleccionado", type="primary"):
-        if Movement.delete_by_id(mov_to_delete):
-            st.rerun()
+        if st.button("Eliminar Movimiento Seleccionado", type="primary"):
+            if Movement.delete_by_id(mov_to_delete):
+                st.success("Movimiento eliminado con éxito.")
+                st.rerun()

@@ -60,7 +60,8 @@ class Movement:
                     data_filter = f"{year:04d}-{month:02d}"
                     query = "SELECT * FROM movements WHERE TO_CHAR(date, 'YYYY-MM') = %s"
                     cursor.execute(query,(data_filter,))
-                    return cursor.fetchall()
+                    rows = cursor.fetchall()
+                    return [dict(row) for row in rows]
         except Exception as e:
             print("Error al buscar movimientos")
             return []
@@ -81,10 +82,12 @@ class Movement:
                             WHERE date BETWEEN %s AND %s
                             """
                     cursor.execute(query,(start_date, end_date))
-                    return cursor.fetchall()
+                    rows = cursor.fetchall()
+                    return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error de base de datos: {e}")
             return []
+
     @staticmethod
     def find_by_employee_and_month(employee_id: int, year: int, month: int):
         try:
@@ -98,8 +101,9 @@ class Movement:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     data_filter = f"{year:04d}-{month:02d}"
                     query = "SELECT * FROM movements WHERE TO_CHAR(date, 'YYYY-MM') = %s AND employee_id = %s;"
-                    cursor.execute(query,(data_filter,employee_id))
-                    return cursor.fetchall()
+                    cursor.execute(query,(data_filter, employee_id))
+                    rows = cursor.fetchall()
+                    return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error de base de datos: {e}")
             return []
@@ -121,7 +125,8 @@ class Movement:
                             WHERE employee_id = %s AND (date BETWEEN %s AND %s);
                             """
                     cursor.execute(query,(employee_id, start_date, end_date))
-                    return cursor.fetchall()
+                    rows = cursor.fetchall()
+                    return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error de base de datos: {e}")
             return []

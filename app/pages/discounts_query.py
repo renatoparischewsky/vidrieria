@@ -1,12 +1,13 @@
 import streamlit as st
 from datetime import datetime
+import pandas as pd
 from app.employees import Employee
+from app.movements import Movement
 from app.calculations_movement import(
     calculate_cash_advance,
     calculate_bank_transfer,
     calculate_absence_discount,
-    calculate_total_discount,
-    get_formatted_movements_for_month_single_employee
+    calculate_total_discount
 )
 
 
@@ -58,11 +59,11 @@ st.metric(label="**Total Faltas Injustificadas**", value=f"${discount:,d} CLP")
 st.divider()
 discount = calculate_total_discount(employee_id, year_selected, month_selected_number)
 st.metric(label="**Descuento Total del Mes**", value=f"${discount:,d} CLP")
-    
-    
-df_movements = get_formatted_movements_for_month_single_employee(employee_id, year_selected, month_selected_number)
 
-
+print(employee_id, year_selected, month_selected_number)
+movements = Movement.find_by_employee_and_month(employee_id, year_selected, month_selected_number)
+df_movements = pd.DataFrame(movements)
+print(df_movements)
 columns_in_spanish = {
 "identifier": "ID",
 "employee_id": "Trabajador",
@@ -71,6 +72,13 @@ columns_in_spanish = {
 "date": "Fecha",
 "description": "Descripción"
 }
+
+movement_type_map = {
+    "CASH_ADVANCE": "Adelanto en Caja",
+    "BANK_TRANSFER": "Transferencia",
+    "UNJUSTIFIED_ABSENCE": "Falta Injustificada"
+}
+df_movements['movement_type'] = df_movements['movement_type'].map(movement_type_map)
 
 if df_movements.empty:
     pass

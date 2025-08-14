@@ -93,7 +93,8 @@ class Employee:
                 ) as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     cursor.execute("SELECT employee_id, tax_id, first_name, last_name, base_salary FROM employees WHERE is_active = True ORDER BY last_name")
-                    return cursor.fetchall()
+                    rows =  cursor.fetchall()
+                    return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error de base de datos: {e}")
             return []
@@ -112,7 +113,8 @@ class Employee:
                 ) as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     cursor.execute("SELECT employee_id, tax_id, first_name, last_name, base_salary FROM employees WHERE is_active = False ORDER BY last_name")
-                    return cursor.fetchall()
+                    rows =  cursor.fetchall()
+                    return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error de base de datos: {e}")
             return []
@@ -130,7 +132,8 @@ class Employee:
                 ) as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     cursor.execute("SELECT employee_id, tax_id, first_name, last_name, base_salary FROM employees ORDER BY last_name;")
-                    return cursor.fetchall()
+                    rows =  cursor.fetchall()
+                    return[dict(row) for row in rows]
         except Exception as e:
             print(f"Error de base de datos: {e}")
             return []

@@ -26,7 +26,7 @@ class EmployeeBase(BaseModel):
 
         tax_id_numbers_clean = int(tax_id_numbers.replace(".", ""))
 
-        if tax_id_numbers_clean < 1 or tax_id_numbers > 99999999:
+        if tax_id_numbers_clean < 1 or tax_id_numbers_clean > 99999999:
             raise ValueError(
                 "RUT inválido."
             )
@@ -48,6 +48,9 @@ class EmployeeUpdate(EmployeeCreate):
 
 class EmployeeGet(EmployeeBase):
     employee_id: int
+
+
+class EmployeeGetWithActive(EmployeeGet):
     is_active: bool
 
 class EmployeeUpdate(BaseModel):
@@ -60,7 +63,7 @@ class MovementBase(BaseModel):
     employee_id: int
     movement_type: str
     amount: int
-    date: datetime
+    date: date
     description: Optional[str] = None
 
     @field_validator("amount")
@@ -98,8 +101,8 @@ class PayrollCalculationResponse(BaseModel):
 
 class MovementFormatted(BaseModel):
     identifier: int
-    employee_id: str  # will be full name with the function get_formatted_movements_for_month
+    employee_id: int  
     movement_type: str
     amount: int
-    date: str
-    description: str = None
+    date: date
+    description: Optional[str] = None

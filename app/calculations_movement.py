@@ -37,8 +37,7 @@ def register_abscence(employee_id: int, description: str = "", movement_date: st
     if movement_date == None:
         movement_date = date.today().isoformat()
 
-    employee = Employee()
-    employee.load_employee(employee_id)
+    employee = Employee.load_employee(employee_id)
     daily_discount = round(employee.base_salary / 30)
 
     advance = Movement(
@@ -50,7 +49,6 @@ def register_abscence(employee_id: int, description: str = "", movement_date: st
     )
     
     return advance.insert_movement()
-
 
 def get_payment_date(year: int, month: int):
     chile_holidays = holidays.Chile(years=year)
@@ -97,9 +95,6 @@ def calculate_absence_discount(employee_id: int, year: int, month: int):
     if not employee.load_employee(employee_id):
         print(f"Error: no se pudo cargar o no existe el empleado con ID {employee_id}")
         return 0
-    # if not employee.base_salary or employee.base_salary <= 0:
-    #     print("No hay sueldo para descontar")
-    #     return 0
     
     movements = Movement.find_by_employee_and_month(employee_id, year, month)
 
@@ -118,7 +113,7 @@ def calculate_total_discount(employee_id: int, year: int, month: int):
     
     total_discount = calculate_cash_advance(employee_id, year, month) + calculate_bank_transfer(employee_id, year, month) + calculate_absence_discount(employee_id, year, month)
     
-    return round(total_discount)
+    return total_discount
 
 
 def get_active_employees_total_salary_this_payroll(start_date, end_date):
@@ -131,61 +126,14 @@ def get_active_employees_total_salary_this_payroll(start_date, end_date):
         employee_data = dict(emp_row)
         employee_id = employee_data['employee_id']
         movements = Movement.find_by_employee_and_date_range(employee_id, start_date, end_date)
-        total_discount = sum(mov['amount'] for mov in movements)
-        base_salary = employee_data['base_salary'] 
+        total_discount = round(sum(mov['amount'] for mov in movements))
+        base_salary = employee_data['base_salary']
         net_salary = base_salary - total_discount
-        employee_data['net_salary'] = net_salary
+        employee_data['base_salary'] = round(base_salary)
+        employee_data['net_salary'] = round(net_salary)
         list_net_salaries.append(employee_data)
         total_to_pay += net_salary
     return {
         "list_net_salaries": list_net_salaries,
-        "total_to_pay": total_to_pay
+        "total_to_pay": round(total_to_pay)
     }
-
-def get_formatted_movements_for_month(year: int, month: int):
-    movements = Movement.find_by_month(year, month)
-    if not movements:
-        return pd.DataFrame()
-    
-    employees = Employee.get_all_employees() #1
-    employee_map = {emp['employee_id']: f"{emp['first_name']} {emp['last_name']}" for emp in employees}
-    movement_type_map = {
-        "CASH_ADVANCE": "Adelanto en Caja",
-        "BANK_TRANSFER": "Transferencia",
-        "UNJUSTIFIED_ABSENCE": "Falta Injustificada"
-    }
-
-    formated_movements = []
-    for mov_row in movements:
-        movement_data = dict(mov_row)
-        movement_data['movement_type'] = movement_type_map.get(movement_data['movement_type'])
-        movement_data['employee_id'] = employee_map.get(movement_data["employee_id"])
-        formated_movements.append(movement_data)
-
-    df_movements = pd.DataFrame(formated_movements)
-
-    return df_movements
-
-def get_formatted_movements_for_month_single_employee(employee_id: int,year: int, month: int):
-    movements = Movement.find_by_employee_and_month(employee_id, year, month)
-    if not movements:
-        return pd.DataFrame()
-    
-    employees = Employee.get_all_active()
-    employee_map = {emp['employee_id']: f"{emp['first_name']} {emp['last_name']}" for emp in employees}
-    movement_type_map = {
-        "CASH_ADVANCE": "Adelanto en Caja",
-        "BANK_TRANSFER": "Transferencia",
-        "UNJUSTIFIED_ABSENCE": "Falta Injustificada"
-    }
-
-    formated_movements = []
-    for mov_row in movements:
-        movement_data = dict(mov_row)
-        movement_data['movement_type'] = movement_type_map.get(movement_data['movement_type'])
-        movement_data['employee_id'] = employee_map.get(movement_data["employee_id"])
-        formated_movements.append(movement_data)
-
-    df_movements = pd.DataFrame(formated_movements)
-
-    return df_movements
