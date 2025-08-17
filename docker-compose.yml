@@ -1,0 +1,33 @@
+services:
+  vidrieria-api:
+    build: .
+    container_name: vidrieria-api
+    ports:
+      - "8000:8000"
+    networks:
+      - vidrieria-net
+    env_file:
+      - .env
+    depends_on:
+      - postgres-db
+
+  postgres-db:
+    image: postgres
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    networks:
+      - vidrieria-net
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+networks:
+  vidrieria-net:
+    driver: bridge
+
+volumes:
+  postgres-data:

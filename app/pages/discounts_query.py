@@ -60,10 +60,10 @@ st.divider()
 discount = calculate_total_discount(employee_id, year_selected, month_selected_number)
 st.metric(label="**Descuento Total del Mes**", value=f"${discount:,d} CLP")
 
-print(employee_id, year_selected, month_selected_number)
+
 movements = Movement.find_by_employee_and_month(employee_id, year_selected, month_selected_number)
 df_movements = pd.DataFrame(movements)
-print(df_movements)
+
 columns_in_spanish = {
 "identifier": "ID",
 "employee_id": "Trabajador",

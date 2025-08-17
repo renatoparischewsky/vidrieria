@@ -15,3 +15,7 @@ Thumbs.db
 
 docs/Logros diario/
 docs/Logros semana/
+
+app/main.py
+app/pages/
+app/__init__db.py

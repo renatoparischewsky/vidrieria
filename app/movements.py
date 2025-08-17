@@ -1,4 +1,4 @@
-import psycopg2
+from app.database import get_db_connection
 from psycopg2.extras import DictCursor
 import os
 from dotenv import load_dotenv
@@ -18,13 +18,7 @@ class Movement:
             if self.identifier is not None:
                 print("Debes desasignar el id agregado del movimiento, de lo contrario no se podrá subir a la base de datos")
                 return False
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute("""
                     INSERT INTO movements (employee_id, movement_type, amount, date, description)
@@ -49,13 +43,7 @@ class Movement:
     @staticmethod
     def find_by_month(year: int, month: int):
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     data_filter = f"{year:04d}-{month:02d}"
                     query = "SELECT * FROM movements WHERE TO_CHAR(date, 'YYYY-MM') = %s"
@@ -69,13 +57,7 @@ class Movement:
     @staticmethod
     def find_by_date_range(start_date, end_date):
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     query = """
                             SELECT * FROM movements
@@ -91,13 +73,7 @@ class Movement:
     @staticmethod
     def find_by_employee_and_month(employee_id: int, year: int, month: int):
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     data_filter = f"{year:04d}-{month:02d}"
                     query = "SELECT * FROM movements WHERE TO_CHAR(date, 'YYYY-MM') = %s AND employee_id = %s;"
@@ -112,13 +88,7 @@ class Movement:
     @staticmethod
     def find_by_employee_and_date_range(employee_id: int, start_date, end_date):
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     query = """
                             SELECT * FROM movements
@@ -134,13 +104,7 @@ class Movement:
     @staticmethod
     def delete_by_id(movement_id: int):
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute("DELETE FROM movements WHERE identifier = %s;", (movement_id,))
                     return True

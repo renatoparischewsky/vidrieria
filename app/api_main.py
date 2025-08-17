@@ -8,7 +8,7 @@ from app.employees import Employee
 from app.movements import Movement
 from app.calculations_movement import *
 from app.schemas import *
-
+import uvicorn
 
 load_dotenv()
 
@@ -263,4 +263,3 @@ def register_abscence_api(movement_data: BaseMovementRequest):
     
     if not result:
         raise HTTPException(status_code=400, detail="No se pudo registrar adelanto")
-

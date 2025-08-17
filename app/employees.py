@@ -1,4 +1,4 @@
-import psycopg2
+from app.database import get_db_connection
 from psycopg2.extras import DictCursor
 import os
 from dotenv import load_dotenv
@@ -17,13 +17,7 @@ class Employee:
     @classmethod
     def load_employee(cls, employee_id):
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     cursor.execute("""
                     SELECT * FROM employees                    
@@ -52,13 +46,7 @@ class Employee:
             print("Debes desasignar el id agregado del empleado, de lo contrario no se podrá subir a la base de datos")
             return False
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     cursor.execute("""
                     INSERT INTO employees (tax_id, first_name, last_name, base_salary, is_active)
@@ -84,13 +72,7 @@ class Employee:
     @staticmethod
     def get_all_active():
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     cursor.execute("SELECT employee_id, tax_id, first_name, last_name, base_salary FROM employees WHERE is_active = True ORDER BY last_name")
                     rows =  cursor.fetchall()
@@ -104,13 +86,7 @@ class Employee:
     @staticmethod
     def get_all_inactive():
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     cursor.execute("SELECT employee_id, tax_id, first_name, last_name, base_salary FROM employees WHERE is_active = False ORDER BY last_name")
                     rows =  cursor.fetchall()
@@ -123,13 +99,7 @@ class Employee:
     @staticmethod
     def get_all_employees():
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor(cursor_factory=DictCursor) as cursor:
                     cursor.execute("SELECT employee_id, tax_id, first_name, last_name, base_salary FROM employees ORDER BY last_name;")
                     rows =  cursor.fetchall()
@@ -141,13 +111,7 @@ class Employee:
 
     def mark_as_inactive(self):
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute("""
                     UPDATE employees
@@ -166,13 +130,7 @@ class Employee:
 
     def mark_as_active(self):
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute("""
                     UPDATE employees
@@ -194,13 +152,7 @@ class Employee:
         if self.employee_id is None:
             return False
         try:
-            with psycopg2.connect(
-                host=os.getenv("DB_HOST"),
-                dbname=os.getenv("DB_NAME"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                port=os.getenv("DB_PORT")
-                ) as conn:
+            with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute("""
                         UPDATE employees
