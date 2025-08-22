@@ -1,6 +1,5 @@
 from app.database import get_db_connection
 from psycopg2.extras import DictCursor
-import os
 from dotenv import load_dotenv
 
 load_dotenv()

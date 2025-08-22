@@ -8,11 +8,13 @@ from app.employees import Employee
 from app.movements import Movement
 from app.calculations_movement import *
 from app.schemas import *
-import uvicorn
+from app.auth import router as auth_router
 
 load_dotenv()
 
 app =FastAPI(title="Vidrieria API", version="1.0.0")
+app.include_router(auth_router)
+
 
 # Employee functions
 #---------------------
